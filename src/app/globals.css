@@ -80,5 +80,38 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Cairo', sans-serif;
+  }
+}
+
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:text-black {
+    color: black !important;
+  }
+  .print\:bg-white {
+    background-color: white !important;
+  }
+  .print\:border-none {
+    border: none !important;
+  }
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  /* Ensure text alignment is right for print */
+  .text-right {
+    text-align: right !important;
+  }
+  .text-left {
+    text-align: left !important;
+  }
+  /* Adjust padding/margin for print */
+  .p-4 {
+    padding: 1rem !important;
+  }
+  .mb-6 {
+    margin-bottom: 1.5rem !important;
   }
 }
