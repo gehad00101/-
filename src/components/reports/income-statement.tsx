@@ -14,8 +14,8 @@ const fetchEntries = async () => {
   return [
     { id: 1, account_type: 'revenue', amount: 50000 },
     { id: 2, account_type: 'revenue', amount: 15000 },
-    { id: 3, account_type: 'expense', amount: -22000 },
-    { id: 4, account_type: 'expense', amount: -8000 },
+    { id: 3, account_type: 'expense', amount: 22000 },
+    { id: 4, account_type: 'expense', amount: 8000 },
   ];
 };
 
@@ -35,7 +35,7 @@ export const IncomeStatement = () => {
         const sums = { revenue: 0, expense: 0 };
         entries.forEach(entry => {
           if (entry.account_type === 'revenue') sums.revenue += entry.amount;
-          if (entry.account_type === 'expense') sums.expense += Math.abs(entry.amount);
+          if (entry.account_type === 'expense') sums.expense += entry.amount;
         });
         setTotals(sums);
       } catch (error) {
@@ -53,7 +53,7 @@ export const IncomeStatement = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       const netIncome = totals.revenue - totals.expense;
-      const mockResult = `حققت الشركة إيرادات إجمالية قدرها ${totals.revenue.toFixed(2)} ريال، بينما بلغت المصروفات ${totals.expense.toFixed(2)} ريال. ينتج عن ذلك صافي دخل ${netIncome >= 0 ? 'ربح' : 'خسارة'} بقيمة ${netIncome.toFixed(2)} ريال، مما يشير إلى أداء مالي ${netIncome >= 0 ? 'قوي' : 'ضعيف'} خلال الفترة.`;
+      const mockResult = `حققت الشركة إيرادات إجمالية قدرها ${totals.revenue.toFixed(2)} ريال، بينما بلغت المصروفات ${totals.expense.toFixed(2)} ريال. ينتج عن ذلك صافي دخل ${netIncome >= 0 ? 'ربح' : 'خسارة'} بقيمة ${Math.abs(netIncome).toFixed(2)} ريال، مما يشير إلى أداء مالي ${netIncome >= 0 ? 'قوي' : 'ضعيف'} خلال الفترة.`;
       setSummary(mockResult);
       toast({ title: 'Success', description: 'تم إنشاء الملخص بنجاح.' });
     } catch (error) {
@@ -63,7 +63,17 @@ export const IncomeStatement = () => {
     }
   };
 
-  const handleDownloadPdf = async () => { /* ... PDF logic ... */ };
+  const handleDownloadPdf = async () => {
+      const element = printRef.current;
+      if (!element) return;
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('income-statement.pdf');
+  };
   const handlePrint = () => window.print();
 
   const netIncome = totals.revenue - totals.expense;
@@ -74,11 +84,11 @@ export const IncomeStatement = () => {
       {loading ? <Skeleton className="h-96 w-full" /> : (
         <>
           <div className="flex justify-center gap-4 mb-6 print:hidden">
-            <Button onClick={handleDownloadPdf}><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
+            <Button onClick={handleDownloadPdf} variant="secondary"><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
             <Button onClick={handlePrint} variant="outline"><Printer className="ml-2 h-4 w-4" /> طباعة</Button>
-            <Button onClick={generateSummary} disabled={summaryLoading}>
+            <Button onClick={generateSummary} disabled={summaryLoading} className="bg-teal-600 hover:bg-teal-700">
               {summaryLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div> : <Wand2 className="ml-2 h-4 w-4" />}
-              تلخيص التقرير
+              تلخيص التقرير ✨
             </Button>
           </div>
 
@@ -97,18 +107,20 @@ export const IncomeStatement = () => {
               <div className="p-4 bg-purple-50 rounded-lg shadow-sm border border-purple-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xl font-semibold text-purple-800">إجمالي الإيرادات:</span>
-                  <span className="text-2xl font-bold text-purple-900">{totals.revenue.toFixed(2)} ريال</span>
+                  <span className="text-2xl font-bold text-purple-900">{totals.revenue.toFixed(2)} ريال 📈</span>
                 </div>
+                <p className="text-gray-600 text-sm">المبالغ المكتسبة من الأنشطة التشغيلية الرئيسية.</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-lg shadow-sm border border-orange-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xl font-semibold text-orange-800">إجمالي المصروفات:</span>
-                  <span className="text-2xl font-bold text-orange-900">{totals.expense.toFixed(2)} ريال</span>
+                  <span className="text-2xl font-bold text-orange-900">{totals.expense.toFixed(2)} ريال 📉</span>
                 </div>
+                <p className="text-gray-600 text-sm">التكاليف المتكبدة لتوليد الإيرادات.</p>
               </div>
               <div className={`p-4 rounded-lg shadow-md font-bold text-center text-lg ${netIncome >= 0 ? 'bg-green-100 text-green-800 border-green-400' : 'bg-red-100 text-red-800 border-red-400'}`}>
                 <p>صافي الدخل: {netIncome.toFixed(2)} ريال</p>
-                {netIncome >= 0 ? <p className="mt-2 text-green-700">✅ صافي ربح.</p> : <p className="mt-2 text-red-700">❌ صافي خسارة.</p>}
+                {netIncome >= 0 ? <p className="mt-2 text-green-700">✅ صافي الدخل إيجابي.</p> : <p className="mt-2 text-red-700">❌ صافي الدخل سلبي (خسارة).</p>}
               </div>
             </div>
           </div>

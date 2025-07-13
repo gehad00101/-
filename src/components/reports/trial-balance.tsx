@@ -35,7 +35,6 @@ export const TrialBalance = () => {
           tempBalances[entry.credit_account] = (tempBalances[entry.credit_account] || 0) - entry.amount;
         });
         setBalances(tempBalances);
-        toast({ title: 'Success', description: 'تم جلب القيود بنجاح.' });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'خطأ في جلب القيود لميزان المراجعة.' });
       } finally {
@@ -56,9 +55,8 @@ export const TrialBalance = () => {
         const canvas = await html2canvas(element, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save('ميزان_المراجعة.pdf');
         toast({ title: 'Success', description: 'تم إنشاء ملف PDF بنجاح!' });
@@ -83,8 +81,8 @@ export const TrialBalance = () => {
       ) : (
         <>
           <div className="flex justify-center gap-4 mb-6 print:hidden">
-            <Button onClick={handleDownloadPdf}><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
-            <Button onClick={handlePrint} variant="outline"><Printer className="ml-2 h-4 w-4" /> طباعة</Button>
+            <Button onClick={handleDownloadPdf} variant="secondary"><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
+            <Button onClick={handlePrint} variant="outline"><Printer className="ml-2 h-4 w-4" /> طباعة مباشرة</Button>
           </div>
           <div ref={printRef} className="p-4 bg-white rounded-lg shadow-md print:shadow-none print:border-none">
             <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center print:text-black">ميزان المراجعة</h3>

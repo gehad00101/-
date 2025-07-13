@@ -34,9 +34,9 @@ export const BalanceSheet = () => {
         const entries = await fetchEntries();
         const sums = { asset: 0, liability: 0, equity: 0 };
         entries.forEach(entry => {
-          if (sums[entry.account_type as keyof typeof sums] !== undefined) {
-            sums[entry.account_type as keyof typeof sums] += entry.amount;
-          }
+          if (entry.account_type === 'asset') sums.asset += entry.amount;
+          else if (entry.account_type === 'liability') sums.liability += entry.amount;
+          else if (entry.account_type === 'equity') sums.equity += entry.amount;
         });
         setTotals(sums);
       } catch (error) {
@@ -51,11 +51,8 @@ export const BalanceSheet = () => {
   const generateSummary = async () => {
     setSummaryLoading(true);
     setSummary('');
-    // This is a mock implementation. In a real app, you would call your GenAI flow here.
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const prompt = `بناءً على بيانات الميزانية العمومية التالية، قدم ملخصًا موجزًا...`;
-      // const result = await summarizeBalanceSheetFlow({ totals });
       const mockResult = `تظهر الميزانية العمومية وضعًا ماليًا مستقرًا. إجمالي الأصول البالغ ${totals.asset.toFixed(2)} يغطي بشكل كافٍ إجمالي الخصوم البالغ ${totals.liability.toFixed(2)}. حقوق الملكية قوية عند ${totals.equity.toFixed(2)}، مما يشير إلى صحة مالية جيدة للشركة.`;
       setSummary(mockResult);
       toast({ title: 'Success', description: 'تم إنشاء الملخص بنجاح.' });
@@ -66,7 +63,17 @@ export const BalanceSheet = () => {
     }
   };
 
-  const handleDownloadPdf = async () => { /* ... PDF logic ... */ };
+  const handleDownloadPdf = async () => {
+      const element = printRef.current;
+      if (!element) return;
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('balance-sheet.pdf');
+  };
   const handlePrint = () => window.print();
 
   const totalLiabilitiesAndEquity = totals.liability + totals.equity;
@@ -78,11 +85,11 @@ export const BalanceSheet = () => {
       {loading ? <Skeleton className="h-96 w-full" /> : (
         <>
           <div className="flex justify-center gap-4 mb-6 print:hidden">
-            <Button onClick={handleDownloadPdf}><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
+            <Button onClick={handleDownloadPdf} variant="secondary"><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
             <Button onClick={handlePrint} variant="outline"><Printer className="ml-2 h-4 w-4" /> طباعة</Button>
-            <Button onClick={generateSummary} disabled={summaryLoading}>
+            <Button onClick={generateSummary} disabled={summaryLoading} className="bg-teal-600 hover:bg-teal-700">
               {summaryLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div> : <Wand2 className="ml-2 h-4 w-4" />}
-              تلخيص التقرير
+              تلخيص التقرير ✨
             </Button>
           </div>
 
@@ -101,20 +108,23 @@ export const BalanceSheet = () => {
               <div className="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200">
                   <div className="flex items-center justify-between mb-2">
                       <span className="text-xl font-semibold text-blue-800">الأصول:</span>
-                      <span className="text-2xl font-bold text-blue-900">{totals.asset.toFixed(2)} ريال</span>
+                      <span className="text-2xl font-bold text-blue-900">{totals.asset.toFixed(2)} ريال 🏦</span>
                   </div>
+                  <p className="text-gray-600 text-sm">إجمالي قيمة الموارد التي تمتلكها الشركة.</p>
               </div>
               <div className="p-4 bg-yellow-50 rounded-lg shadow-sm border border-yellow-200">
                   <div className="flex items-center justify-between mb-2">
                       <span className="text-xl font-semibold text-yellow-800">الخصوم:</span>
-                      <span className="text-2xl font-bold text-yellow-900">{totals.liability.toFixed(2)} ريال</span>
+                      <span className="text-2xl font-bold text-yellow-900">{totals.liability.toFixed(2)} ريال 💳</span>
                   </div>
+                  <p className="text-gray-600 text-sm">إجمالي الالتزامات المالية للشركة تجاه الأطراف الخارجية.</p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg shadow-sm border border-green-200">
                   <div className="flex items-center justify-between mb-2">
                       <span className="text-xl font-semibold text-green-800">حقوق الملكية:</span>
-                      <span className="text-2xl font-bold text-green-900">{totals.equity.toFixed(2)} ريال</span>
+                      <span className="text-2xl font-bold text-green-900">{totals.equity.toFixed(2)} ريال 🧾</span>
                   </div>
+                   <p className="text-gray-600 text-sm">المبلغ المتبقي للمساهمين بعد سداد جميع الالتزامات.</p>
               </div>
               <div className={`p-4 rounded-lg shadow-md font-bold text-center text-lg ${isBalanced ? 'bg-green-100 text-green-800 border-green-400' : 'bg-red-100 text-red-800 border-red-400'}`}>
                 <p>الأصول = {totals.asset.toFixed(2)} | الخصوم + حقوق الملكية = {totalLiabilitiesAndEquity.toFixed(2)}</p>

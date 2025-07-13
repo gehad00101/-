@@ -5,8 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
-// Mock data, replace with your actual API calls
 const fetchEntries = async () => {
   await new Promise(resolve => setTimeout(resolve, 500));
   return [
@@ -40,19 +40,51 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
   const [entries, setEntries] = useState<any[]>([]);
   const [coaAccounts, setCoaAccounts] = useState<any[]>([]);
   const { toast } = useToast();
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [suggestionExplanation, setSuggestionExplanation] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const [entriesData, coaData] = await Promise.all([fetchEntries(), fetchCoaAccounts()]);
         setEntries(entriesData);
-        setCoaAccounts(coaData);
+        setCoaAccounts(coaData.filter((acc: any) => acc.parent_id !== null));
       } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to load initial data.' });
       }
     };
     loadData();
   }, [toast]);
+
+  const handleSuggestAccounts = async () => {
+      if (!description) {
+        toast({variant: 'destructive', title: 'Error', description: 'الرجاء إدخال وصف القيد أولاً للحصول على اقتراحات.'});
+        return;
+      }
+      setSuggestionLoading(true);
+      setSuggestionExplanation("");
+      try {
+        await new Promise(res => setTimeout(res, 1500));
+        const suggestion = {
+            debit_account: 'مصروفات مكتبية',
+            credit_account: 'النقدية',
+            account_type: 'expense',
+            explanation: 'Based on the description "شراء لوازم مكتبية", the expense account is debited and cash is credited.'
+        };
+        
+        setDebitAccount(suggestion.debit_account);
+        setCreditAccount(suggestion.credit_account);
+        setAccountType(suggestion.account_type);
+        setSuggestionExplanation(suggestion.explanation || "No explanation available.");
+        toast({title: 'Success', description: 'تم الحصول على اقتراحات الحسابات بنجاح!'});
+
+      } catch (error) {
+        toast({variant: 'destructive', title: 'Error', description: 'خطأ في الحصول على اقتراحات الحسابات.'});
+        setSuggestionExplanation("فشل الحصول على اقتراحات.");
+      } finally {
+        setSuggestionLoading(false);
+      }
+    };
 
   const handleAddEntry = async () => {
     if (!description || !debitAccount || !creditAccount || !amount || !accountType) {
@@ -64,11 +96,9 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
       return;
     }
     
-    // Mock API call
     console.log("Adding entry:", { description, debitAccount, creditAccount, amount, accountType, cashFlowType });
     toast({ title: 'Success', description: 'تمت إضافة القيد بنجاح!' });
     
-    // Optimistically update UI
     const newEntry = {
       id: crypto.randomUUID(),
       description,
@@ -81,13 +111,13 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
     };
     setEntries(prev => [newEntry, ...prev]);
 
-    // Reset form
     setDescription("");
     setDebitAccount("");
     setCreditAccount("");
     setAmount("");
     setAccountType("");
     setCashFlowType("");
+    setSuggestionExplanation("");
   };
 
   const canAddEntry = userRole === 'admin' || userRole === 'accountant';
@@ -103,13 +133,39 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
       )}
 
       <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 ${!canAddEntry ? 'opacity-50 pointer-events-none' : ''}`}>
-        <div>
-          <label htmlFor="description" className="block text-gray-700 text-lg font-medium mb-2">الوصف:</label>
-          <Input id="description" placeholder="مثال: شراء لوازم مكتبية" value={description} onChange={(e) => setDescription(e.target.value)} disabled={!canAddEntry} className="text-right" />
+        <div className="md:col-span-2">
+            <label htmlFor="description" className="block text-gray-700 text-lg font-medium mb-2">الوصف:</label>
+            <Textarea
+                id="description"
+                placeholder="مثال: شراء لوازم مكتبية نقداً"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="text-right h-24"
+                aria-label="الوصف"
+                disabled={!canAddEntry || suggestionLoading}
+            />
+            <Button
+                onClick={handleSuggestAccounts}
+                className="mt-2 text-sm"
+                variant="secondary"
+                disabled={!canAddEntry || suggestionLoading}
+            >
+                {suggestionLoading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                ) : (
+                    <span className="mr-2">✨</span>
+                )}
+                اقتراح الحسابات (بواسطة AI)
+            </Button>
+            {suggestionExplanation && (
+                <div className="mt-2 p-2 bg-blue-50 rounded-md text-sm text-blue-800 border border-blue-200 text-right">
+                    <span className="font-semibold">تفسير الاقتراح:</span> {suggestionExplanation}
+                </div>
+            )}
         </div>
         <div>
           <label htmlFor="debitAccount" className="block text-gray-700 text-lg font-medium mb-2">الحساب المدين:</label>
-           <Select onValueChange={setDebitAccount} value={debitAccount} disabled={!canAddEntry}>
+           <Select onValueChange={setDebitAccount} value={debitAccount} disabled={!canAddEntry || suggestionLoading}>
                 <SelectTrigger id="debitAccount"><SelectValue placeholder="اختر الحساب المدين" /></SelectTrigger>
                 <SelectContent>
                     {coaAccounts.map((account) => <SelectItem key={account.id} value={account.name}>{account.name}</SelectItem>)}
@@ -118,7 +174,7 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
         </div>
         <div>
           <label htmlFor="creditAccount" className="block text-gray-700 text-lg font-medium mb-2">الحساب الدائن:</label>
-          <Select onValueChange={setCreditAccount} value={creditAccount} disabled={!canAddEntry}>
+          <Select onValueChange={setCreditAccount} value={creditAccount} disabled={!canAddEntry || suggestionLoading}>
                 <SelectTrigger id="creditAccount"><SelectValue placeholder="اختر الحساب الدائن" /></SelectTrigger>
                 <SelectContent>
                     {coaAccounts.map((account) => <SelectItem key={account.id} value={account.name}>{account.name}</SelectItem>)}
@@ -127,11 +183,11 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
         </div>
         <div>
           <label htmlFor="amount" className="block text-gray-700 text-lg font-medium mb-2">المبلغ:</label>
-          <Input id="amount" type="number" placeholder="مثال: 500.00" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={!canAddEntry} className="text-right" />
+          <Input id="amount" type="number" placeholder="مثال: 500.00" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={!canAddEntry || suggestionLoading} className="text-right" />
         </div>
         <div>
           <label htmlFor="accountType" className="block text-gray-700 text-lg font-medium mb-2">نوع الحساب:</label>
-          <Select onValueChange={setAccountType} value={accountType} disabled={!canAddEntry}>
+          <Select onValueChange={setAccountType} value={accountType} disabled={!canAddEntry || suggestionLoading}>
                 <SelectTrigger id="accountType"><SelectValue placeholder="اختر نوع الحساب" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="revenue">إيراد</SelectItem>
@@ -144,7 +200,7 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
         </div>
         <div>
           <label htmlFor="cashFlowType" className="block text-gray-700 text-lg font-medium mb-2">نوع التدفق النقدي (اختياري):</label>
-           <Select onValueChange={setCashFlowType} value={cashFlowType} disabled={!canAddEntry}>
+           <Select onValueChange={setCashFlowType} value={cashFlowType} disabled={!canAddEntry || suggestionLoading}>
                 <SelectTrigger id="cashFlowType"><SelectValue placeholder="اختر نوع التدفق النقدي" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="operational">تشغيلي</SelectItem>
@@ -155,7 +211,7 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
         </div>
       </div>
 
-      <Button onClick={handleAddEntry} disabled={!canAddEntry} className="w-full md:w-auto">
+      <Button onClick={handleAddEntry} disabled={!canAddEntry || suggestionLoading} className="w-full md:w-auto">
         إضافة القيد
       </Button>
 

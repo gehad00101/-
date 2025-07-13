@@ -1,159 +1,231 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
   TrendingUp,
+  TrendingDown,
+  List,
+  BarChart as BarChartIcon,
+  Users,
+  AlertCircle,
+  MinusCircle,
+  Percent,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Bar, BarChart, XAxis, YAxis, Legend, PieChart, Pie, Cell } from "recharts";
 
-// Mock data fetching, replace with your actual API calls
+// Mock data, replace with your actual API calls
 const fetchDashboardData = async () => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
-    totalIncome: 125000,
-    totalExpenses: 78000,
-    profitLoss: 47000,
-    invoice_count: 152,
+    total_revenue: 35000,
+    total_expenses: 12000,
+    net_profit: 23000,
+    invoice_count: 8,
     monthly_data: [
-      { month: 'Jan', revenue: 15000, expense: 8000 },
-      { month: 'Feb', revenue: 18000, expense: 9500 },
-      { month: 'Mar', revenue: 22000, expense: 12000 },
-      { month: 'Apr', revenue: 20000, expense: 11000 },
-      { month: 'May', revenue: 25000, expense: 15000 },
-      { month: 'Jun', revenue: 25000, expense: 12500 },
+      { month: "يناير", revenue: 3500, expense: 1500 },
+      { month: "فبراير", revenue: 3800, expense: 1600 },
+      { month: "مارس", revenue: 3200, expense: 1400 },
+      { month: "أبريل", revenue: 4000, expense: 1800 },
+      { month: "مايو", revenue: 3700, expense: 1700 },
+      { month: "يونيو", revenue: 4200, expense: 1900 },
     ],
-    cash_flow_summary: 'Positive cash flow from operating activities, with significant investment in new equipment.'
+    cash_flow_summary:
+      "Positive cash flow from operating activities, with significant investment in new equipment.",
   };
 };
+
+const expenseDistributionData = [
+    { name: 'رواتب', value: 35 },
+    { name: 'تشغيل', value: 25 },
+    { name: 'تسويق', value: 20 },
+    { name: 'إيجار', value: 10 },
+    { name: 'أخرى', value: 10 },
+];
+const COLORS = ['#6366F1', '#EF4444', '#F59E0B', '#10B981', '#6B7280'];
+
+const alertsData = [
+  { type: 'تنبيه هام', description: 'فاتورة رقم #12345 مستحقة اليوم!', icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-50' },
+  { type: 'تحليل ذكي', description: 'ارتفعت المصاريف التشغيلية بنسبة 15% هذا الشهر.', icon: BarChartIcon, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  { type: 'تنبيه', description: 'العميل "شركة الأمل" اقترب من الحد الائتماني.', icon: Users, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+  { type: 'تنبيه هام', description: 'خطأ محاسبي بسيط في قيد رقم #54321.', icon: MinusCircle, color: 'text-red-500', bgColor: 'bg-red-50' },
+];
 
 export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
-  useState(() => {
+  useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         const data = await fetchDashboardData();
         setDashboardData(data);
-        toast({ title: 'Success', description: 'Dashboard data loaded successfully.' });
       } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to load dashboard data.' });
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load dashboard data.",
+        });
         console.error("Error fetching dashboard data:", error);
       } finally {
         setLoading(false);
+        const loadTimer = setTimeout(() => {
+            setIsLoaded(true);
+        }, 100);
+        return () => clearTimeout(loadTimer);
       }
     };
     loadData();
-  });
+  }, [toast]);
 
-  const maxMonthlyValue = useMemo(() => {
-    if (!dashboardData?.monthly_data) return 0;
-    return Math.max(
-      ...dashboardData.monthly_data.map((data: any) => Math.max(data.revenue, data.expense, 0))
-    );
+  const topCardsData = useMemo(() => {
+    if (!dashboardData) return [];
+    return [
+      {
+        title: 'الإيرادات',
+        value: `${dashboardData.total_revenue.toFixed(2)} ريال`,
+        icon: TrendingUp,
+        description: 'نمو +8%',
+        descriptionColor: 'text-green-400'
+      },
+      {
+        title: 'المصروفات',
+        value: `${dashboardData.total_expenses.toFixed(2)} ريال`,
+        icon: TrendingDown,
+        description: 'انخفاض -3%',
+        descriptionColor: 'text-red-400'
+      },
+      {
+        title: 'صافي الربح',
+        value: `${dashboardData.net_profit.toFixed(2)} ريال`,
+        icon: Percent,
+        description: 'هامش ربح 65%',
+        descriptionColor: 'text-amber-200'
+      },
+      {
+        title: 'عدد القيود',
+        value: `${dashboardData.invoice_count} قيود مُدخلة`,
+        icon: List,
+        description: 'آخر تحديث اليوم',
+        descriptionColor: 'text-stone-200'
+      },
+    ];
   }, [dashboardData]);
 
   if (loading || !dashboardData) {
     return (
-      <div className="p-6 bg-white rounded-lg shadow-md mb-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">لوحة التحكم</h2>
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24 md:col-span-2" />
+      <div className="p-6">
+          <Skeleton className="h-8 w-1/3 mb-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-40 w-full" />)}
           </div>
-          <Skeleton className="h-80" />
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <Skeleton className="lg:col-span-2 h-80" />
+              <Skeleton className="h-80" />
+          </div>
       </div>
     );
   }
 
-  const { totalIncome, totalExpenses, profitLoss } = dashboardData;
-
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md mb-6 text-right">
-      <h2 className="text-3xl font-bold text-gray-800 mb-4 text-center">لوحة التحكم</h2>
-      <div className="space-y-6">
-        <section className="grid gap-4 md:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
-              <ArrowUpRight className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-headline text-primary">
-                {totalIncome.toFixed(2)} ريال
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
-              <ArrowDownLeft className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-headline text-destructive">
-                {totalExpenses.toFixed(2)} ريال
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">صافي الربح/الخسارة</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold font-headline ${profitLoss >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                {profitLoss.toFixed(2)} ريال
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+    <main className={`flex-1 p-6 overflow-y-auto transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">لوحة التحكم الرئيسية</h1>
 
-        <div className="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">الأداء الشهري (إيرادات ومصروفات)</h3>
-          {dashboardData.monthly_data.length === 0 ? (
-            <p className="text-gray-600 text-center text-lg">لا توجد بيانات شهرية لعرض الرسم البياني.</p>
-          ) : (
-            <div className="flex justify-around items-end h-64 border-b-2 border-r-2 border-gray-300 pt-4 pr-4">
-              {dashboardData.monthly_data.map((data: any, index: number) => (
-                <div key={index} className="flex flex-col items-center mx-2 w-1/6">
-                  <div
-                    className="bg-green-500 w-8 rounded-t-md relative"
-                    style={{ height: `${(data.revenue / maxMonthlyValue) * 100}%` }}
-                    title={`إيرادات ${data.month}: ${data.revenue.toFixed(2)}`}
-                  >
-                    <span className="absolute -top-6 text-xs font-semibold text-green-700 w-full text-center">
-                      {data.revenue > 0 ? data.revenue.toFixed(0) : ''}
-                    </span>
-                  </div>
-                  <div
-                    className="bg-red-500 w-8 rounded-b-md relative"
-                    style={{ height: `${(data.expense / maxMonthlyValue) * 100}%` }}
-                    title={`مصروفات ${data.month}: ${data.expense.toFixed(2)}`}
-                  >
-                     <span className="absolute -bottom-6 text-xs font-semibold text-red-700 w-full text-center">
-                      {data.expense > 0 ? data.expense.toFixed(0) : ''}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 mt-2">{data.month}</span>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {topCardsData.map((card, index) => (
+                <Card
+                key={index}
+                className={`text-white p-0 rounded-lg shadow-xl flex flex-col justify-between aspect-square transform hover:scale-105 transition-transform duration-300 ease-out animate-fade-in ${
+                  index === 0 ? 'bg-gray-900' : index === 1 ? 'bg-gray-800' : index === 2 ? 'bg-amber-600' : 'bg-stone-700'
+                }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 text-white">
+                    <CardTitle className="text-lg font-semibold">{card.title}</CardTitle>
+                    <card.icon className="h-8 w-8 opacity-75 animate-bounce-slow" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold mb-2">{card.value}</div>
+                    <p className={`text-sm ${card.descriptionColor}`}>{card.description}</p>
+                </CardContent>
+                </Card>
+            ))}
         </div>
 
-      </div>
-    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="lg:col-span-2 p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">تطور الإيرادات والمصروفات (آخر 6 أشهر)</h2>
+                <div className="h-[300px]">
+                    <ChartContainer config={{}} className="min-h-[200px] w-full">
+                        <BarChart data={dashboardData.monthly_data}>
+                            <XAxis dataKey="month" stroke="#6B7280" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#6B7280" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Legend />
+                            <Bar dataKey="revenue" name="الإيرادات" fill="#6366F1" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="expense" name="المصروفات" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ChartContainer>
+                </div>
+            </Card>
+
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">توزيع المصاريف</h2>
+                 <div className="h-[300px]">
+                    <ChartContainer config={{}} className="min-h-[200px] w-full">
+                        <PieChart>
+                            <Pie data={expenseDistributionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                {expenseDistributionData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Legend />
+                        </PieChart>
+                    </ChartContainer>
+                </div>
+            </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">تحليل ذكي</h2>
+                <div className="flex items-start p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <BarChartIcon className="h-6 w-6 flex-shrink-0 mr-3 text-blue-600" />
+                    <div>
+                    <h3 className="text-lg font-medium text-blue-800">تحليل المصاريف التشغيلية</h3>
+                    <p className="text-gray-700">
+                        ارتفعت المصاريف التشغيلية بنسبة <span className="font-bold text-red-600">15%</span> هذا الشهر مقارنة بالشهر الماضي. يرجى مراجعة التفاصيل.
+                    </p>
+                    </div>
+                </div>
+            </Card>
+            
+            <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">التنبيهات المهمة</h2>
+                <div className="space-y-4">
+                    {alertsData.map((alert, index) => (
+                        <div key={index} className={`flex items-start p-4 rounded-lg border ${alert.bgColor} ${alert.color === 'text-red-500' ? 'border-red-300' : 'border-gray-200'}`}>
+                            <alert.icon className={`h-6 w-6 flex-shrink-0 mr-3 ${alert.color}`} />
+                            <div>
+                                <h3 className={`text-lg font-medium ${alert.color}`}>{alert.type}</h3>
+                                <p className="text-gray-700">{alert.description}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </Card>
+        </div>
+    </main>
   );
 }

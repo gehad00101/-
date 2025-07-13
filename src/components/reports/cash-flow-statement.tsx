@@ -63,7 +63,17 @@ export const CashFlowStatement = () => {
     }
   };
 
-  const handleDownloadPdf = async () => { /* ... PDF logic ... */ };
+  const handleDownloadPdf = async () => {
+      const element = printRef.current;
+      if (!element) return;
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('cash-flow-statement.pdf');
+  };
   const handlePrint = () => window.print();
 
   const netCashFlow = totals.operational + totals.investing + totals.financing;
@@ -74,11 +84,11 @@ export const CashFlowStatement = () => {
       {loading ? <Skeleton className="h-96 w-full" /> : (
         <>
           <div className="flex justify-center gap-4 mb-6 print:hidden">
-            <Button onClick={handleDownloadPdf}><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
+            <Button onClick={handleDownloadPdf} variant="secondary"><Download className="ml-2 h-4 w-4" /> تحميل PDF</Button>
             <Button onClick={handlePrint} variant="outline"><Printer className="ml-2 h-4 w-4" /> طباعة</Button>
-            <Button onClick={generateSummary} disabled={summaryLoading}>
+            <Button onClick={generateSummary} disabled={summaryLoading} className="bg-teal-600 hover:bg-teal-700">
               {summaryLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div> : <Wand2 className="ml-2 h-4 w-4" />}
-              تلخيص التقرير
+              تلخيص التقرير ✨
             </Button>
           </div>
 
@@ -97,20 +107,23 @@ export const CashFlowStatement = () => {
                 <div className="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xl font-semibold text-blue-800">التدفقات من الأنشطة التشغيلية:</span>
-                        <span className="text-2xl font-bold text-blue-900">{totals.operational.toFixed(2)} ريال</span>
+                        <span className="text-2xl font-bold text-blue-900">{totals.operational.toFixed(2)} ريال 🔧</span>
                     </div>
+                    <p className="text-gray-600 text-sm">التدفقات النقدية الناتجة عن العمليات الأساسية للشركة.</p>
                 </div>
                 <div className="p-4 bg-yellow-50 rounded-lg shadow-sm border border-yellow-200">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xl font-semibold text-yellow-800">التدفقات من الأنشطة الاستثمارية:</span>
-                        <span className="text-2xl font-bold text-yellow-900">{totals.investing.toFixed(2)} ريال</span>
+                        <span className="text-2xl font-bold text-yellow-900">{totals.investing.toFixed(2)} ريال 🏗</span>
                     </div>
+                    <p className="text-gray-600 text-sm">التدفقات النقدية المتعلقة بشراء وبيع الأصول طويلة الأجل.</p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg shadow-sm border border-green-200">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xl font-semibold text-green-800">التدفقات من الأنشطة التمويلية:</span>
-                        <span className="text-2xl font-bold text-green-900">{totals.financing.toFixed(2)} ريال</span>
+                        <span className="text-2xl font-bold text-green-900">{totals.financing.toFixed(2)} ريال 💰</span>
                     </div>
+                    <p className="text-gray-600 text-sm">التدفقات النقدية الناتجة عن معاملات الديون وحقوق الملكية.</p>
                 </div>
                 <div className={`p-4 rounded-lg shadow-md font-bold text-center text-lg ${netCashFlow >= 0 ? 'bg-green-100 text-green-800 border-green-400' : 'bg-red-100 text-red-800 border-red-400'}`}>
                     <p>صافي التدفق النقدي: {netCashFlow.toFixed(2)} ريال</p>

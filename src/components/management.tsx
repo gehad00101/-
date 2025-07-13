@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from 'lucide-react';
+import { XCircle, Terminal } from 'lucide-react';
 
 interface ManagementProps {
   userRole: 'admin' | 'viewer' | 'accountant';
@@ -20,7 +20,6 @@ export const Management: FC<ManagementProps> = ({ userRole }) => {
     toast({ title: 'Info', description: 'جارٍ إغلاق الفترة المالية...' });
     setClosingResult(null);
     try {
-      // Mock API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       const netProfitLoss = Math.random() * 20000 - 5000;
       setClosingResult(netProfitLoss);
@@ -58,7 +57,8 @@ export const Management: FC<ManagementProps> = ({ userRole }) => {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full md:w-auto">
-                  إغلاق الفترة المالية
+                    <XCircle className="ml-2 h-4 w-4" />
+                    إغلاق الفترة المالية
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
