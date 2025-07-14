@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Download, Printer, Copy, Wand2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { getReportSummary } from '@/app/actions';
 
 // Mock data fetching
 const fetchEntries = async () => {
@@ -51,10 +52,11 @@ export const CashFlowStatement = () => {
   const generateSummary = async () => {
      setSummaryLoading(true);
     setSummary('');
+    const netCashFlow = totals.operational + totals.investing + totals.financing;
+    const reportData = { ...totals, netCashFlow };
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockResult = `تحليل التدفقات النقدية يظهر أنشطة تشغيلية إيجابية بقيمة ${totals.operational.toFixed(2)}، مما يدل على كفاءة العمليات الأساسية. تم استثمار ${Math.abs(totals.investing).toFixed(2)} في الأنشطة الاستثمارية، بينما تم الحصول على تمويل بقيمة ${totals.financing.toFixed(2)}. صافي التدفق النقدي إيجابي، وهو مؤشر جيد.`;
-      setSummary(mockResult);
+      const result = await getReportSummary('Cash Flow Statement', reportData);
+      setSummary(result);
       toast({ title: 'Success', description: 'تم إنشاء الملخص بنجاح.' });
     } catch (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'فشل إنشاء الملخص.' });

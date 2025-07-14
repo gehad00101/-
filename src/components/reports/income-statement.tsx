@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Download, Printer, Copy, Wand2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { getReportSummary } from '@/app/actions';
 
 // Mock data fetching
 const fetchEntries = async () => {
@@ -50,11 +51,11 @@ export const IncomeStatement = () => {
   const generateSummary = async () => {
     setSummaryLoading(true);
     setSummary('');
+    const netIncome = totals.revenue - totals.expense;
+    const reportData = { ...totals, netIncome };
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const netIncome = totals.revenue - totals.expense;
-      const mockResult = `حققت الشركة إيرادات إجمالية قدرها ${totals.revenue.toFixed(2)} ريال، بينما بلغت المصروفات ${totals.expense.toFixed(2)} ريال. ينتج عن ذلك صافي دخل ${netIncome >= 0 ? 'ربح' : 'خسارة'} بقيمة ${Math.abs(netIncome).toFixed(2)} ريال، مما يشير إلى أداء مالي ${netIncome >= 0 ? 'قوي' : 'ضعيف'} خلال الفترة.`;
-      setSummary(mockResult);
+      const result = await getReportSummary('Income Statement', reportData);
+      setSummary(result);
       toast({ title: 'Success', description: 'تم إنشاء الملخص بنجاح.' });
     } catch (error) {
        toast({ variant: 'destructive', title: 'Error', description: 'فشل إنشاء الملخص.' });

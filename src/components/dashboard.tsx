@@ -10,6 +10,8 @@ import {
   AlertCircle,
   MinusCircle,
   Percent,
+  Wand2,
+  Copy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +22,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Bar, BarChart, XAxis, YAxis, Legend, PieChart, Pie, Cell } from "recharts";
+import { Button } from "./ui/button";
+import { getDashboardInsight } from "@/app/actions";
 
 // Mock data, replace with your actual API calls
 const fetchDashboardData = async () => {
@@ -62,6 +66,8 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [insight, setInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -87,6 +93,22 @@ export default function Dashboard() {
     };
     loadData();
   }, [toast]);
+
+  const generateDashboardInsight = async () => {
+    if (!dashboardData) return;
+    setInsightLoading(true);
+    setInsight('');
+    try {
+      const result = await getDashboardInsight(dashboardData);
+      setInsight(result);
+      toast({ title: 'Success', description: 'تم إنشاء التحليل بنجاح.' });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'فشل إنشاء التحليل.' });
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
 
   const topCardsData = useMemo(() => {
     if (!dashboardData) return [];
@@ -161,6 +183,23 @@ export default function Dashboard() {
                 </Card>
             ))}
         </div>
+
+        <div className="mb-6 text-center">
+            <Button onClick={generateDashboardInsight} disabled={insightLoading} className="bg-indigo-600 hover:bg-indigo-700">
+                {insightLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div> : <Wand2 className="ml-2 h-4 w-4" />}
+                تحليل لوحة التحكم (بواسطة Gemini)
+            </Button>
+        </div>
+
+        {insight && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg shadow-md border border-blue-200">
+                <h3 className="text-xl font-bold text-blue-800 mb-2">تحليل لوحة التحكم (بواسطة Gemini)</h3>
+                <p className="text-gray-700 whitespace-pre-line">{insight}</p>
+                <Button onClick={() => navigator.clipboard.writeText(insight)} variant="ghost" size="sm" className="mt-2">
+                    <Copy className="ml-2 h-4 w-4" /> نسخ
+                </Button>
+            </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <Card className="lg:col-span-2 p-6">

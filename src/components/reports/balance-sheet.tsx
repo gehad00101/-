@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Download, Printer, Copy, Wand2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { getReportSummary } from '@/app/actions';
 
 // Mock data fetching
 const fetchEntries = async () => {
@@ -51,10 +52,19 @@ export const BalanceSheet = () => {
   const generateSummary = async () => {
     setSummaryLoading(true);
     setSummary('');
+    const totalLiabilitiesAndEquity = totals.liability + totals.equity;
+    const isBalanced = Math.abs(totals.asset - totalLiabilitiesAndEquity) < 0.01;
+
+    const reportData = {
+        totalAssets: totals.asset,
+        totalLiabilities: totals.liability,
+        totalEquity: totals.equity,
+        isBalanced: isBalanced
+    };
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockResult = `تظهر الميزانية العمومية وضعًا ماليًا مستقرًا. إجمالي الأصول البالغ ${totals.asset.toFixed(2)} يغطي بشكل كافٍ إجمالي الخصوم البالغ ${totals.liability.toFixed(2)}. حقوق الملكية قوية عند ${totals.equity.toFixed(2)}، مما يشير إلى صحة مالية جيدة للشركة.`;
-      setSummary(mockResult);
+      const result = await getReportSummary('Balance Sheet', reportData);
+      setSummary(result);
       toast({ title: 'Success', description: 'تم إنشاء الملخص بنجاح.' });
     } catch (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'فشل إنشاء الملخص.' });

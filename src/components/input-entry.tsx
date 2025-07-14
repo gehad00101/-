@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { getCategoryForTransaction } from '@/app/actions';
 
 const fetchEntries = async () => {
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -64,17 +65,12 @@ export const InputEntry: FC<InputEntryProps> = ({ userRole }) => {
       setSuggestionLoading(true);
       setSuggestionExplanation("");
       try {
-        await new Promise(res => setTimeout(res, 1500));
-        const suggestion = {
-            debit_account: 'مصروفات مكتبية',
-            credit_account: 'النقدية',
-            account_type: 'expense',
-            explanation: 'Based on the description "شراء لوازم مكتبية", the expense account is debited and cash is credited.'
-        };
+        const availableAccounts = coaAccounts.map(acc => acc.name);
+        const suggestion = await getCategoryForTransaction(description, availableAccounts);
         
-        setDebitAccount(suggestion.debit_account);
-        setCreditAccount(suggestion.credit_account);
-        setAccountType(suggestion.account_type);
+        setDebitAccount(suggestion.debitAccount);
+        setCreditAccount(suggestion.creditAccount);
+        setAccountType(suggestion.accountType);
         setSuggestionExplanation(suggestion.explanation || "No explanation available.");
         toast({title: 'Success', description: 'تم الحصول على اقتراحات الحسابات بنجاح!'});
 
