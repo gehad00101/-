@@ -47,3 +47,12 @@ export type Account = {
     color: string;
     parentId: string | null;
 };
+
+export type Transaction = {
+    id: string;
+    date: Date;
+    description: string;
+    amount: number;
+    type: 'income' | 'expense';
+    category: string;
+};
