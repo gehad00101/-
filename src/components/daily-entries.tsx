@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Plus, Eye, Edit, Trash, Printer, AlertTriangle, Save, XCircle, Copy, FilePlus, RefreshCcw, Download, Tag, Mail, Filter } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash, Printer, AlertTriangle, Save, XCircle, Copy, FilePlus, RefreshCcw, Download, Tag, Mail, Filter, CheckCircle } from 'lucide-react';
 import { chartOfAccounts, entryTypes, operationTypes, users, customersSuppliers, productsServices, paymentMethods, invoiceStatuses, TAX_RATE } from '@/lib/data';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -447,5 +447,3 @@ const DailyEntries = () => {
       </div>
     );
 };
-  
-export default DailyEntries;
