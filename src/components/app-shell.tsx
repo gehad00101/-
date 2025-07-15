@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Home, LayoutDashboard, Settings, Users, BarChart2, DollarSign, 
   ShoppingBag, Bell, Search, User, Menu, X, ChevronDown, 
-  FileText, BookOpen, Receipt, CreditCard, ClipboardList, Key, Calendar
+  FileText, BookOpen, Receipt, CreditCard, ClipboardList, Key, Calendar, HelpCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -22,6 +22,7 @@ const navItems = [
     { href: '/customers-suppliers', label: 'العملاء والموردين', icon: Users },
     { href: '/users-permissions', label: 'المستخدمين والصلاحيات', icon: Key },
     { href: '/settings', label: 'الإعدادات', icon: Settings },
+    { href: '/how-to-design-integrated-accounting-system', label: 'كيفية تصميم نظام محاسبي', icon: HelpCircle },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
