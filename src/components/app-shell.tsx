@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,293 +10,122 @@ import {
   LayoutDashboard,
   ClipboardList,
   BookOpen,
-  DollarSign,
-  ShoppingCart,
-  Wallet,
-  BarChart,
-  Landmark,
-  Briefcase,
+  Receipt,
+  CreditCard,
   Settings,
   LogOut,
   ChevronDown,
   Menu,
   X,
   Bell,
+  Search,
+  User,
+  BarChart2,
+  Calendar,
+  Users,
+  Key,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
-const sidebarItems = [
-  {
-    name: "لوحة التحكم",
-    icon: LayoutDashboard,
-    page: "/dashboard",
-  },
-  {
-    name: "القيود المحاسبية",
-    icon: ClipboardList,
-    page: "/entry",
-  },
-  {
-    name: "دليل الحسابات",
-    icon: BookOpen,
-    page: "/chart-of-accounts",
-  },
-  {
-    name: "التقارير المالية",
-    icon: BarChart,
-    subItems: [
-      { name: "تقرير قائمة الدخل", page: "/reports/income-statement" },
-      { name: "تقرير الميزانية العمومية", page: "/reports/balance-sheet" },
-      { name: "تقرير التدفقات النقدية", page: "/reports/cash-flow-statement" },
-      { name: "تقرير ميزان المراجعة", page: "/reports/trial-balance" },
-    ],
-  },
-  {
-    name: "الإعدادات",
-    icon: Settings,
-    subItems: [{ name: "إدارة المستخدمين والصلاحيات", page: "/management" }],
-  },
-];
 
-const Sidebar = ({
-  isSidebarOpen,
-  toggleSidebar,
-  isMobile,
-}: {
-  isSidebarOpen: boolean;
-  toggleSidebar: () => void;
-  isMobile: boolean;
-}) => {
-  const pathname = usePathname();
-  const [openMenuItem, setOpenMenuItem] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Open the parent menu if a sub-item is active
-    const activeParent = sidebarItems.find((item) =>
-      item.subItems?.some((sub) => sub.page === pathname)
-    );
-    if (activeParent) {
-      setOpenMenuItem(activeParent.name);
-    }
-  }, [pathname]);
-
-  const handleMenuItemClick = (itemName: string) => {
-    setOpenMenuItem(openMenuItem === itemName ? null : itemName);
-  };
-
-  const handleLinkClick = () => {
-    if (isMobile) {
-      toggleSidebar();
-    }
-  };
-
-  return (
-    <aside
-      className={`fixed top-0 right-0 h-full bg-white shadow-lg w-64 transform transition-transform duration-300 ease-in-out z-20 ${
-        isSidebarOpen ? "translate-x-0" : "translate-x-full"
-      } md:relative md:translate-x-0 md:shadow-none md:w-64 md:flex-shrink-0 md:border-l md:border-gray-200`}
-    >
-      <div className="p-4 border-b border-gray-200 hidden md:flex items-center justify-center">
-        <Image
-          src="https://placehold.co/40x40/6366F1/FFFFFF?text=شعار"
-          alt="شعار النظام"
-          width={40}
-          height={40}
-          className="h-10 w-10 rounded-full ml-2"
-        />
-        <span className="text-indigo-600 text-2xl font-extrabold">
-          النظام المحاسبي
-        </span>
-      </div>
-
-      <div className="flex justify-between items-center p-4 md:hidden">
-        <h2 className="text-xl font-semibold text-gray-800">القائمة</h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          aria-label="إغلاق القائمة الجانبية"
-        >
-          <X className="h-6 w-6" />
-        </Button>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul>
-          <li className="mb-2">
-            <Link href="/" legacyBehavior passHref>
-              <a
-                onClick={handleLinkClick}
-                className={`flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-200 group focus:outline-none ${
-                  pathname === "/" ? "bg-indigo-100 text-indigo-700" : ""
-                }`}
-              >
-                <div className="flex items-center">
-                  <Home className="text-xl ml-3 text-gray-500 group-hover:text-indigo-600 transition-colors duration-200" />
-                  <span className="font-medium text-lg">الرئيسية</span>
-                </div>
-              </a>
-            </Link>
-          </li>
-          {sidebarItems.map((item, index) => (
-            <li key={index} className="mb-2">
-              <button
-                className="flex items-center justify-between w-full p-3 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-200 group focus:outline-none"
-                onClick={() =>
-                  item.page
-                    ? handleLinkClick()
-                    : handleMenuItemClick(item.name)
-                }
-              >
-                {item.page ? (
-                  <Link href={item.page} className="flex items-center w-full">
-                    <item.icon className="text-xl ml-3 text-gray-500 group-hover:text-indigo-600 transition-colors duration-200" />
-                    <span className="font-medium text-lg">{item.name}</span>
-                  </Link>
-                ) : (
-                  <>
-                    <div className="flex items-center">
-                      <item.icon className="text-xl ml-3 text-gray-500 group-hover:text-indigo-600 transition-colors duration-200" />
-                      <span className="font-medium text-lg">{item.name}</span>
-                    </div>
-                    {item.subItems && (
-                      <ChevronDown
-                        className={`text-gray-500 transition-transform duration-200 ${
-                          openMenuItem === item.name ? "rotate-180" : ""
-                        }`}
-                      />
-                    )}
-                  </>
-                )}
-              </button>
-              {item.subItems && openMenuItem === item.name && (
-                <ul className="mt-2 mr-8 border-r border-gray-200">
-                  {item.subItems.map((subItem, subIndex) => (
-                    <li key={subIndex} className="mb-1">
-                      <Link href={subItem.page} legacyBehavior passHref>
-                        <a
-                          onClick={handleLinkClick}
-                          className={`flex items-center p-2 rounded-lg text-gray-600 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 text-sm ${
-                            pathname === subItem.page
-                              ? "bg-indigo-100 text-indigo-700"
-                              : ""
-                          }`}
-                        >
-                          {subItem.name}
-                        </a>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div className="p-4 border-t border-gray-200 mt-auto">
-        <Button
-          onClick={() => alert("Logout!")}
-          className="w-full bg-indigo-500 text-white hover:bg-indigo-600"
-        >
-          <LogOut className="ml-2 h-4 w-4" />
-          <span>تسجيل الخروج</span>
-        </Button>
-      </div>
-    </aside>
-  );
-};
-
-export default function AppShell({ children }: { children: React.ReactNode }) {
+const AppShell = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const username = "أحمد المحاسب";
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setIsSidebarOpen(false); // Close sidebar when switching to desktop view
-      }
-    };
-
-    handleResize(); // Initial check
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const pathname = usePathname();
 
   return (
-    <div className="flex flex-col min-h-screen bg-stone-100" dir="rtl">
-      <header className="bg-white shadow-sm p-4 flex items-center justify-between md:justify-end border-b border-gray-200 z-10 relative">
-        <Button
-          className="md:hidden"
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          aria-label="فتح القائمة الجانبية"
-        >
-          {isSidebarOpen ? <X /> : <Menu />}
-        </Button>
-
-        <div className="md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 md:left-auto flex items-center">
-          <Image
-            src="https://placehold.co/40x40/6366F1/FFFFFF?text=شعار"
-            alt="شعار النظام"
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded-full"
-          />
-          <span className="text-indigo-600 text-xl font-bold mr-2 hidden md:block">
-            النظام المحاسبي
-          </span>
+    <div className="flex h-screen bg-gray-100 font-sans text-right" dir="rtl">
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg transform ${
+          isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+        } lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col border-l border-gray-200`}
+      >
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-800">لوحة التحكم</h1>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <X size={24} />
+          </button>
         </div>
+        <nav className="flex-grow p-4 space-y-2 overflow-y-auto">
+            <Link href="/dashboard" legacyBehavior>
+                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 w-full text-right rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/dashboard' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}>
+                    <Home size={22} className="ml-3" /> الرئيسية
+                </a>
+            </Link>
+            <Link href="/entry" legacyBehavior>
+                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 w-full text-right rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/entry' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}>
+                    <ClipboardList size={22} className="ml-3" /> القيود اليومية
+                </a>
+            </Link>
+            <Link href="/chart-of-accounts" legacyBehavior>
+                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 w-full text-right rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/chart-of-accounts' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}>
+                    <BookOpen size={22} className="ml-3" /> دليل الحسابات
+                </a>
+            </Link>
+             <Link href="/invoices" legacyBehavior>
+                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 w-full text-right rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/invoices' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}>
+                    <Receipt size={22} className="ml-3" /> الفواتير
+                </a>
+            </Link>
+        </nav>
+        <div className="p-4 border-t border-gray-200">
+            <button className="flex items-center p-3 w-full text-right rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 text-lg font-medium">
+                <LogOut size={22} className="ml-3" /> تسجيل الخروج
+            </button>
+        </div>
+      </aside>
 
-        <div className="flex items-center space-x-4 space-x-reverse">
-          <Button variant="ghost" size="icon" aria-label="التنبيهات">
-            <Bell />
-          </Button>
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <Image
-              src="https://placehold.co/40x40/A78BFA/FFFFFF?text=أنا"
-              alt="صورة المستخدم"
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full border-2 border-indigo-300"
-            />
-            <span className="font-medium text-gray-800 hidden sm:block">
-              {username}
-            </span>
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="flex items-center justify-between p-4 bg-white shadow-md z-40 border-b border-gray-200">
+          <div className="flex items-center">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ml-3"
+            >
+              {isSidebarOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+            <div className="relative w-full max-w-md mx-auto md:mx-0">
+              <input
+                type="text"
+                placeholder="ابحث عن شيء..."
+                className="pl-12 pr-4 py-3 rounded-full bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-lg"
+                dir="rtl"
+              />
+              <Search size={24} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
           </div>
-          <Button variant="ghost" size="icon" aria-label="الإعدادات">
-            <Settings />
-          </Button>
-        </div>
-      </header>
+          <div className="flex items-center space-x-4 space-x-reverse">
+            <button className="p-3 rounded-full text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
+              <Bell size={24} />
+            </button>
+            <div className="flex items-center space-x-3 space-x-reverse cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+              <Image
+                src="https://placehold.co/40x40/FF7F50/FFFFFF?text=JD"
+                alt="صورة المستخدم"
+                width={40}
+                height={40}
+                data-ai-hint="user profile"
+                className="w-10 h-10 rounded-full border-2 border-blue-400 object-cover"
+              />
+              <span className="font-medium text-gray-800 hidden md:block text-lg">جون دو</span>
+              <ChevronDown size={20} className="text-gray-500 hidden md:block" />
+            </div>
+          </div>
+        </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isSidebarOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-          isMobile={isMobile}
-        />
-
-        {isSidebarOpen && isMobile && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
-            onClick={toggleSidebar}
-            aria-hidden="true"
-          ></div>
-        )}
-
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
-}
+};
+
+export default AppShell;
+
+    
