@@ -1,8 +1,2 @@
-export type Transaction = {
-  id: string;
-  type: 'income' | 'expense';
-  date: Date;
-  description: string;
-  amount: number;
-  category: string;
-};
+// This file can be used to define shared types.
+// For now it is empty as each component defines its own types.

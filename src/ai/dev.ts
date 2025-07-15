@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/categorize-transaction.ts';
-import '@/ai/flows/generate-dashboard-insight.ts';
-import '@/ai/flows/summarize-report.ts';
+// This file is the entrypoint for Genkit development.
+// It is intentionally left empty for the simpler tracker app.
