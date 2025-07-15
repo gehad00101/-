@@ -35,15 +35,19 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
           </button>
         </div>
         <nav className="flex-grow p-4 space-y-2">
-            <Link href="/dashboard" legacyBehavior>
-                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/dashboard' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}>
-                    <LayoutDashboard size={22} className="ml-3" /> لوحة التحكم
-                </a>
+            <Link 
+              href="/dashboard"
+              onClick={() => setIsSidebarOpen(false)}
+              className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/dashboard' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}
+            >
+                <LayoutDashboard size={22} className="ml-3" /> لوحة التحكم
             </Link>
-            <Link href="/transactions" legacyBehavior>
-                <a onClick={() => setIsSidebarOpen(false)} className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/transactions' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}>
-                    <Wallet size={22} className="ml-3" /> المعاملات
-                </a>
+            <Link 
+              href="/transactions"
+              onClick={() => setIsSidebarOpen(false)}
+              className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-lg font-medium ${pathname === '/transactions' ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent hover:text-accent-foreground'}`}
+            >
+                <Wallet size={22} className="ml-3" /> المعاملات
             </Link>
         </nav>
         <div className="p-4 border-t border-border">
