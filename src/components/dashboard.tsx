@@ -1,177 +1,264 @@
+'use client';
 
-"use client";
+import { useState, useEffect } from 'react';
+import { getDashboardInsight } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Briefcase,
+  AlertCircle,
+  Banknote,
+  Wand2,
+  Copy,
+  Receipt,
+  Landmark,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Home, LayoutDashboard, Settings, Users, BarChart2, DollarSign, ShoppingBag, Bell, Search, User, Menu, X, ChevronDown, Calendar, Clock, CheckCircle, AlertCircle, Info, FileText, BookOpen, Receipt, CreditCard, ClipboardList, TrendingUp, Briefcase, Key, ListChecks, Plus, Eye, Edit, Trash, Printer, AlertTriangle, Save, XCircle, Copy, FilePlus, RefreshCcw, Download, Tag, Mail, Filter } from 'lucide-react';
+// Dummy data for financial metrics
+const financialData = {
+  total_revenue: 120000,
+  total_expenses: 85000,
+  net_profit: 35000,
+  cash_balance: 50000,
+  invoice_count: 75,
+};
 
-const salesData = [
-  { name: 'يناير', مبيعات: 4000, أرباح: 2400 },
-  { name: 'فبراير', مبيعات: 3000, أرباح: 1398 },
-  { name: 'مارس', مبيعات: 2000, أرباح: 9800 },
-  { name: 'أبريل', مبيعات: 2780, أرباح: 3908 },
-  { name: 'مايو', مبيعات: 1890, أرباح: 4800 },
-  { name: 'يونيو', مبيعات: 2390, أرباح: 3800 },
-  { name: 'يوليو', مبيعات: 3490, أرباح: 4300 },
+// Dummy monthly data for the bar chart
+const monthlyData = [
+  { month: 'يناير', revenue: 18000, expense: 13000 },
+  { month: 'فبراير', revenue: 22000, expense: 15000 },
+  { month: 'مارس', revenue: 20000, expense: 14000 },
+  { month: 'أبريل', revenue: 25000, expense: 17000 },
+  { month: 'مايو', revenue: 23000, expense: 16000 },
+  { month: 'يونيو', revenue: 28000, expense: 19000 },
 ];
 
-const activityData = [
-  { id: 1, type: 'جديد', description: 'تم تسجيل مستخدم جديد', time: 'منذ 5 دقائق', icon: <User size={16} className="text-green-500" /> },
-  { id: 2, type: 'طلب', description: 'طلب شراء جديد #12345', time: 'منذ ساعة', icon: <ShoppingBag size={16} className="text-blue-500" /> },
-  { id: 3, type: 'تنبيه', description: 'مساحة التخزين منخفضة', time: 'منذ 3 ساعات', icon: <AlertCircle size={16} className="text-red-500" /> },
-  { id: 4, type: 'تقرير', description: 'تم إنشاء تقرير المبيعات الشهري', time: 'أمس', icon: <BarChart2 size={16} className="text-purple-500" /> },
+// Dummy data for expense structure pie chart
+const expenseData = [
+  { name: 'الرواتب', value: 40000 },
+  { name: 'الإيجار', value: 15000 },
+  { name: 'التسويق', value: 10000 },
+  { name: 'المشتريات', value: 12000 },
+  { name: 'مصاريف أخرى', value: 8000 },
+];
+
+const COLORS = ['#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
+
+// Dummy data for key account balances
+const accountBalances = [
+  { name: 'النقدية بالصندوق', balance: 15000, icon: <Banknote className="text-green-500" /> },
+  { name: 'الحساب البنكي', balance: 35000, icon: <Landmark className="text-blue-500" /> },
+  { name: 'الذمم المدينة (العملاء)', balance: 25000, icon: <Receipt className="text-orange-500" /> },
+  { name: 'الذمم الدائنة (الموردين)', balance: 18000, icon: <Receipt className="text-red-500" /> },
 ];
 
 export default function Dashboard() {
+  const [loading, setLoading] = useState(false);
+  const [insight, setInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleGenerateInsight = async () => {
+    setInsightLoading(true);
+    setInsight('');
+    try {
+      const dataForInsight = {
+        ...financialData,
+        monthly_data: monthlyData,
+      };
+      const result = await getDashboardInsight(dataForInsight);
+      setInsight(result);
+      toast({ title: 'Success', description: 'تم إنشاء التحليل بنجاح.' });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'فشل إنشاء التحليل.',
+      });
+      console.error('Error generating insight:', error);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Skeleton className="h-36" />
+          <Skeleton className="h-36" />
+          <Skeleton className="h-36" />
+          <Skeleton className="h-36" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <Skeleton className="lg:col-span-3 h-80" />
+          <Skeleton className="lg:col-span-2 h-80" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Stat Card 1 */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 flex items-center justify-between border border-blue-100">
-          <div>
-            <p className="text-base text-gray-600 mb-1">إجمالي المبيعات</p>
-            <h2 className="text-4xl font-extrabold text-blue-700 mt-1">45,231 ر.س</h2>
+    <div className="space-y-8 animate-fade-in">
+      {/* KPIs Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-md border-r-4 border-green-500">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">إجمالي الإيرادات</h3>
+            <TrendingUp className="text-green-500" size={28} />
           </div>
-          <DollarSign size={60} className="text-blue-400 opacity-20" />
+          <p className="text-3xl font-bold text-gray-800 mt-2">
+            {financialData.total_revenue.toLocaleString('ar-SA')} ر.س
+          </p>
         </div>
-
-        {/* Stat Card 2 */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 flex items-center justify-between border border-green-100">
-          <div>
-            <p className="text-base text-gray-600 mb-1">العملاء الجدد</p>
-            <h2 className="text-4xl font-extrabold text-green-700 mt-1">2,345</h2>
+        <div className="bg-white p-6 rounded-xl shadow-md border-r-4 border-red-500">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">إجمالي المصروفات</h3>
+            <TrendingDown className="text-red-500" size={28} />
           </div>
-          <Users size={60} className="text-green-400 opacity-20" />
+          <p className="text-3xl font-bold text-gray-800 mt-2">
+            {financialData.total_expenses.toLocaleString('ar-SA')} ر.س
+          </p>
         </div>
-
-        {/* Stat Card 3 */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 flex items-center justify-between border border-orange-100">
-          <div>
-            <p className="text-base text-gray-600 mb-1">الطلبات المعلقة</p>
-            <h2 className="text-4xl font-extrabold text-orange-700 mt-1">1,200</h2>
+        <div className="bg-white p-6 rounded-xl shadow-md border-r-4 border-blue-500">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">صافي الربح</h3>
+            <DollarSign className="text-blue-500" size={28} />
           </div>
-          <ShoppingBag size={60} className="text-orange-400 opacity-20" />
+          <p className="text-3xl font-bold text-gray-800 mt-2">
+            {financialData.net_profit.toLocaleString('ar-SA')} ر.س
+          </p>
         </div>
-
-        {/* Stat Card 4 */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1 flex items-center justify-between border border-purple-100">
-          <div>
-            <p className="text-base text-gray-600 mb-1">النمو اليومي</p>
-            <h2 className="text-4xl font-extrabold text-purple-700 mt-1">+15%</h2>
+        <div className="bg-white p-6 rounded-xl shadow-md border-r-4 border-yellow-500">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-600">السيولة النقدية</h3>
+            <Briefcase className="text-yellow-500" size={28} />
           </div>
-          <TrendingUp size={60} className="text-purple-400 opacity-20" />
+          <p className="text-3xl font-bold text-gray-800 mt-2">
+            {financialData.cash_balance.toLocaleString('ar-SA')} ر.س
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Sales Chart */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">مبيعات وأرباح هذا العام</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart
-              data={salesData}
-              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+      {/* AI Insight Section */}
+       <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2 sm:mb-0">نظرة عامة تحليلية</h3>
+          <Button onClick={handleGenerateInsight} disabled={insightLoading}>
+            {insightLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div> : <Wand2 className="ml-2 h-4 w-4" />}
+            توليد تحليل بالذكاء الاصطناعي
+          </Button>
+        </div>
+        {insightLoading && <p className="text-gray-600">جاري تحليل البيانات...</p>}
+        {insight && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 relative">
+            <p className="text-gray-700 whitespace-pre-line">{insight}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 left-2"
+              onClick={() => {
+                navigator.clipboard.writeText(insight);
+                toast({ title: "Copied!", description: "تم نسخ التحليل." });
+              }}
             >
-              <CartesianGrid strokeDasharray="4 4" stroke="#e0e0e0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} padding={{ left: 20, right: 20 }} />
-              <YAxis axisLine={false} tickLine={false} />
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-md">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">الإيرادات مقابل المصروفات</h3>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#6b7280' }} />
+              <YAxis tick={{ fill: '#6b7280' }} tickFormatter={(value) => `${value / 1000} ألف`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  border: '1px solid #ccc',
-                  borderRadius: '12px',
-                  padding: '10px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.75rem',
                 }}
-                labelStyle={{ fontWeight: 'bold', color: '#333' }}
-                itemStyle={{ color: '#555' }}
               />
-              <Legend wrapperStyle={{ paddingTop: '20px' }} />
-              <Line
-                type="monotone"
-                dataKey="مبيعات"
-                stroke="#4A90E2"
-                strokeWidth={3}
-                activeDot={{ r: 8, fill: '#4A90E2', stroke: '#fff', strokeWidth: 2 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="أرباح"
-                stroke="#7ED321"
-                strokeWidth={3}
-                activeDot={{ r: 8, fill: '#7ED321', stroke: '#fff', strokeWidth: 2 }}
-              />
-            </LineChart>
+              <Legend />
+              <Bar dataKey="revenue" fill="#22c55e" name="الإيرادات" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expense" fill="#ef4444" name="المصروفات" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">النشاطات الأخيرة</h3>
-          <ul className="space-y-5">
-            {activityData.map((activity) => (
-              <li key={activity.id} className="flex items-center p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-                <div className="flex-shrink-0 ml-4 p-2 rounded-full bg-white shadow-sm border border-gray-200">{activity.icon}</div>
-                <div>
-                  <p className="text-gray-800 font-medium text-lg">{activity.description}</p>
-                  <p className="text-sm text-gray-500">{activity.time}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">هيكل المصروفات</h3>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie
+                data={expenseData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={120}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+              >
+                {expenseData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value, name) => [`${Number(value).toLocaleString('ar-SA')} ر.س`, name]} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
+       {/* Key Balances & Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Tasks Card */}
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">المهام</h3>
-          <ul className="space-y-4">
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <div className="flex items-center">
-                <ListChecks size={24} className="text-blue-500 ml-4" />
-                <span className="text-gray-700 text-lg">مراجعة تقرير الربع الأول</span>
-              </div>
-              <span className="text-sm text-gray-500 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">اليوم</span>
-            </li>
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <div className="flex items-center">
-                <Calendar size={24} className="text-green-500 ml-4" />
-                <span className="text-gray-700 text-lg">تحديد موعد اجتماع الفريق</span>
-              </div>
-              <span className="text-sm text-gray-500 bg-green-100 text-green-700 px-3 py-1 rounded-full">غداً</span>
-            </li>
-            <li className="flex items-center justify-between p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <div className="flex items-center">
-                <Clock size={24} className="text-orange-500 ml-4" />
-                <span className="text-gray-700 text-lg">الرد على استفسارات العملاء</span>
-              </div>
-              <span className="text-sm text-gray-500 bg-orange-100 text-orange-700 px-3 py-1 rounded-full">بعد يومين</span>
-            </li>
-          </ul>
+        <div className="bg-white p-6 rounded-xl shadow-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">أرصدة الحسابات الرئيسية</h3>
+            <div className="space-y-4">
+                {accountBalances.map(account => (
+                     <div key={account.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                            <div className="p-2 bg-white rounded-full mr-3">{account.icon}</div>
+                            <span className="font-medium text-gray-700">{account.name}</span>
+                        </div>
+                        <span className="font-bold text-gray-800 text-lg">{account.balance.toLocaleString('ar-SA')} ر.س</span>
+                     </div>
+                ))}
+            </div>
         </div>
-
-        {/* Quick Info Card */}
-        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">معلومات سريعة</h3>
-          <div className="space-y-4">
-            <div className="flex items-center p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <Info size={24} className="text-gray-500 ml-4" />
-              <p className="text-gray-700 text-lg">عدد المنتجات النشطة: <span className="font-bold text-blue-600">120</span></p>
-            </div>
-            <div className="flex items-center p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <Briefcase size={24} className="text-gray-500 ml-4" />
-              <p className="text-gray-700 text-lg">عدد الفروع: <span className="font-bold text-green-600">5</span></p>
-            </div>
-            <div className="flex items-center p-4 bg-gray-50 rounded-lg transition-all duration-200 hover:bg-gray-100 cursor-pointer">
-              <LayoutDashboard size={24} className="text-gray-500 ml-4" />
-              <p className="text-gray-700 text-lg">إصدار النظام: <span className="font-bold text-purple-600">2.1.0</span></p>
-            </div>
-          </div>
+        <div className="bg-white p-6 rounded-xl shadow-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">إجراءات سريعة</h3>
+             <div className="grid grid-cols-2 gap-4">
+                 <Button variant="outline" className="h-20 text-lg">إضافة فاتورة بيع</Button>
+                 <Button variant="outline" className="h-20 text-lg">إضافة فاتورة شراء</Button>
+                 <Button variant="outline" className="h-20 text-lg">تسجيل مصروف</Button>
+                 <Button variant="outline" className="h-20 text-lg">عرض كشف حساب</Button>
+             </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
-
-    
