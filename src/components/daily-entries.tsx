@@ -447,4 +447,4 @@ const DailyEntries = () => {
       </div>
     );
 };
-```
+export default DailyEntries;
