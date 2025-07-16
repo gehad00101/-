@@ -13,9 +13,9 @@ const JournalEntriesListView = ({ dailyEntries, onAddEntry, onEditEntry, onViewE
     const [filterEntryNumber, setFilterEntryNumber] = useState('');
     const [filterFromDate, setFilterFromDate] = useState('');
     const [filterToDate, setFilterToDate] = useState('');
-    const [filterEntryType, setFilterEntryType] = useState('');
-    const [filterOperationType, setFilterOperationType] = useState('');
-    const [filterUser, setFilterUser] = useState('');
+    const [filterEntryType, setFilterEntryType] = useState('all');
+    const [filterOperationType, setFilterOperationType] = useState('all');
+    const [filterUser, setFilterUser] = useState('all');
   
     const filteredDailyEntries = useMemo(() => {
       return dailyEntries.filter(entry => {
@@ -28,9 +28,9 @@ const JournalEntriesListView = ({ dailyEntries, onAddEntry, onEditEntry, onViewE
         if(toDate) toDate.setHours(23,59,59,999);
 
         const matchesDate = (!fromDate || entryDate >= fromDate) && (!toDate || entryDate <= toDate);
-        const matchesEntryType = filterEntryType ? entry.entryType === filterEntryType : true;
-        const matchesOperationType = filterOperationType ? entry.operationType === filterOperationType : true;
-        const matchesUser = filterUser ? entry.user === filterUser : true;
+        const matchesEntryType = filterEntryType !== 'all' ? entry.entryType === filterEntryType : true;
+        const matchesOperationType = filterOperationType !== 'all' ? entry.operationType === filterOperationType : true;
+        const matchesUser = filterUser !== 'all' ? entry.user === filterUser : true;
   
         return matchesEntryNumber && matchesDate && matchesEntryType && matchesOperationType && matchesUser;
       });
@@ -72,30 +72,30 @@ const JournalEntriesListView = ({ dailyEntries, onAddEntry, onEditEntry, onViewE
             </div>
             <div>
               <Label htmlFor="filterEntryType">نوع القيد</Label>
-              <Select onValueChange={setFilterEntryType} value={filterEntryType}>
+              <Select onValueChange={setFilterEntryType} defaultValue="all">
                 <SelectTrigger><SelectValue placeholder="الكل" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الكل</SelectItem>
+                  <SelectItem value="all">الكل</SelectItem>
                   {entryTypes.map(type => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="filterOperationType">نوع العملية</Label>
-              <Select onValueChange={setFilterOperationType} value={filterOperationType}>
+              <Select onValueChange={setFilterOperationType} defaultValue="all">
                 <SelectTrigger><SelectValue placeholder="الكل" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الكل</SelectItem>
+                  <SelectItem value="all">الكل</SelectItem>
                   {operationTypes.map(type => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label htmlFor="filterUser">المستخدم</Label>
-              <Select onValueChange={setFilterUser} value={filterUser}>
+              <Select onValueChange={setFilterUser} defaultValue="all">
                 <SelectTrigger><SelectValue placeholder="الكل" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">الكل</SelectItem>
+                  <SelectItem value="all">الكل</SelectItem>
                   {users.map(user => (<SelectItem key={user.value} value={user.value}>{user.label}</SelectItem>))}
                 </SelectContent>
               </Select>
@@ -448,3 +448,5 @@ const DailyEntries = () => {
     );
 };
 export default DailyEntries;
+
+    
