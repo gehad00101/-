@@ -192,7 +192,7 @@ const AddEditAccountModal = ({ showModal, onClose, onSave, initialAccount }) => 
 const ChartOfAccounts = () => {
     const [accounts, setAccounts] = useState(initialAccounts);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState('');
+    const [filterType, setFilterType] = useState('all');
     const [showAddEditModal, setShowAddEditModal] = useState(false);
     const [accountToEdit, setAccountToEdit] = useState(null);
   
@@ -201,7 +201,7 @@ const ChartOfAccounts = () => {
         const matchesSearch = searchTerm ?
           (account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            account.id.includes(searchTerm)) : true;
-        const matchesType = filterType ? account.type === filterType : true;
+        const matchesType = filterType !== 'all' ? account.type === filterType : true;
         return matchesSearch && matchesType;
       });
     }, [accounts, searchTerm, filterType]);
@@ -271,12 +271,12 @@ const ChartOfAccounts = () => {
   
         <div className="p-6 rounded-xl mb-6 border border-gray-200 bg-gray-50">
           <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center"><Filter size={20} className="ml-2" /> فلترة حسب التصنيف</h3>
-          <Select onValueChange={setFilterType} value={filterType}>
+          <Select onValueChange={setFilterType} defaultValue="all">
             <SelectTrigger className="w-full md:w-1/3">
               <SelectValue placeholder="جميع التصنيفات" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="">جميع التصنيفات</SelectItem>
+                <SelectItem value="all">جميع التصنيفات</SelectItem>
                 <SelectItem value="رئيسي">رئيسي</SelectItem>
                 <SelectItem value="الأصول">الأصول</SelectItem>
                 <SelectItem value="الالتزامات">الالتزامات</SelectItem>
